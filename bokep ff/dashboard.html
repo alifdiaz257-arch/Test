@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LIFX Library - Dashboard</title>
+    <style>
+        /* ============ FONT DARI FOLDER FONTS ============ */
+        @font-face {
+            font-family: 'MyCustomFont';
+            src: url('assets/fonts/cartoon-bold.woff2') format('woff2'),
+                 url('assets/fonts/cartoon-bold.woff') format('woff'),
+                 url('assets/fonts/cartoon-bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Quicksand';
+            src: url('assets/fonts/Quicksand-Bold.woff2') format('woff2'),
+                 url('assets/fonts/Quicksand-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'MyCustomFont', 'Quicksand', 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', cursive;
+            font-weight: bold;
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ============ THEME UNGU ============ */
+        body.theme-light {
+            --bg-primary: #f5f0ff;
+            --bg-secondary: #ffffff;
+            --text-primary: #4a2c7a;
+            --text-secondary: #7a5a9a;
+            --accent: #9b59b6;
+            --accent-hover: #8e44ad;
+            --shadow: 0 4px 20px rgba(155,89,182,0.1);
+            --border: #e8d5f5;
+            --card-bg: #ffffff;
+            --info-bg: #f9f3ff;
+            --scrollbar-track: #e8d5f5;
+            --scrollbar-thumb: #9b59b6;
+            --video-overlay: linear-gradient(135deg, rgba(155,89,182,0.25), rgba(142,68,173,0.25));
+        }
+
+        body.theme-dark {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #2d1b4e;
+            --text-primary: #e8d5f5;
+            --text-secondary: #b8a0d0;
+            --accent: #bb6bd9;
+            --accent-hover: #a855c7;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --border: #3d2a5a;
+            --card-bg: #2a1a42;
+            --info-bg: #1f1235;
+            --scrollbar-track: #3d2a5a;
+            --scrollbar-thumb: #bb6bd9;
+            --video-overlay: linear-gradient(135deg, rgba(187,107,217,0.3), rgba(168,85,199,0.3));
+        }
+
+        body { background: var(--bg-primary); color: var(--text-primary); }
+
+        /* ============ SCROLLBAR ============ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes glowPulse { 0%,100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.02); } }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 150%; } 100% { left: 150%; } }
+        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent); } 50% { box-shadow: 0 0 0 10px rgba(155,89,182,0); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes scaleUp { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes checkPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 80% { transform: translate(-50%, -50%) scale(1.2); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+        @keyframes whiteFlashTitle {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            20%, 100% { transform: translateX(100%) rotate(45deg); }
+        }
+        @keyframes slideRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeTextOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-20px); }
+        }
+        @keyframes fadeTextIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ============ RUNNING TEXT ============ */
+        .running-text-container {
+            background: var(--accent);
+            padding: 10px 0;
+            overflow: hidden;
+            position: relative;
+            margin-top: 10px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+        }
+        .running-text {
+            white-space: nowrap;
+            animation: scrollText 20s linear infinite;
+            display: inline-block;
+            color: white;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .running-text.fade-out-text {
+            animation: fadeTextOut 0.3s ease forwards;
+        }
+        .running-text.fade-in-text {
+            animation: fadeTextIn 0.3s ease forwards;
+        }
+
+        /* ============ SIDEBAR ============ */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: var(--bg-secondary);
+            box-shadow: var(--shadow);
+            transition: left 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar.active { left: 0; animation: slideIn 0.3s ease; }
+        .sidebar-header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid var(--border); margin-bottom: 20px; position: relative; }
+        .sidebar-header h3 { font-size: 22px; color: var(--accent); }
+        
+        /* Tooltip Owner */
+        .owner-tooltip {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        .owner-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 6px 6px 6px;
+            border-style: solid;
+            border-color: transparent transparent var(--accent) transparent;
+        }
+        .footer-credit {
+            margin-top: 30px;
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            position: relative;
+        }
+        .footer-credit:hover .owner-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 100%;
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex; align-items: center; padding: 12px 15px; margin: 5px 0;
+            border-radius: 12px; color: var(--text-primary); gap: 12px; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav .nav-item:hover { background: var(--accent); color: white; transform: translateX(8px); }
+        .sidebar-nav .nav-item.active { background: var(--accent); color: white; }
+        .nav-icon { font-size: 22px; min-width: 40px; }
+        
+        /* Gambar Chibi dengan border-radius mengikuti foto */
+        .sidebar-chibi {
+            margin-top: 20px;
+            text-align: center;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .sidebar-chibi img {
+            width: 100%;
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 20px;
+            transition: all 0.3s;
+            filter: drop-shadow(0 0 5px rgba(155,89,182,0.2));
+        }
+        .sidebar-chibi:hover img {
+            transform: scale(1.02);
+            filter: drop-shadow(0 0 10px rgba(155,89,182,0.4));
+        }
+        
+        /* Tooltip Chibi */
+        .chibi-tooltip {
+            position: absolute;
+            top: 10px;
+            right: -20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        .chibi-tooltip::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px 8px 6px 0;
+            border-style: solid;
+            border-color: transparent #ee5a24 transparent transparent;
+        }
+        .sidebar-chibi:hover .chibi-tooltip {
+            opacity: 1;
+            visibility: visible;
+            right: -10px;
+            animation: bounce 0.3s ease;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .main-content { margin-left: 0; transition: margin-left 0.3s ease; min-height: 100vh; }
+        .main-content.shifted { margin-left: 280px; }
+
+        /* ============ HEADER ============ */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px; background: var(--bg-secondary); box-shadow: var(--shadow);
+            position: sticky; top: 0; z-index: 100;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .hamburger-btn {
+            width: 40px; height: 40px; background: transparent; border: none; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+            border-radius: 10px; transition: all 0.3s;
+        }
+        .hamburger-btn:hover { background: var(--border); transform: scale(1.05); }
+        .hamburger-btn span { width: 25px; height: 3px; background: var(--text-primary); border-radius: 3px; transition: 0.3s; }
+        .hamburger-btn.active span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+        .switch input:checked + .slider { background-color: var(--accent); }
+        .switch input:checked + .slider:before { transform: translateX(26px); }
+
+        .settings-btn {
+            background: transparent; border: none; font-size: 22px; cursor: pointer;
+            padding: 5px 10px; border-radius: 30px; transition: all 0.3s;
+        }
+        .settings-btn:hover { background: var(--border); transform: rotate(15deg) scale(1.1); }
+
+        .inbox-container { position: relative; }
+        .inbox-btn, .report-btn {
+            background: transparent; border: none; font-size: 24px; cursor: pointer;
+            padding: 8px 12px; border-radius: 30px; transition: all 0.3s;
+        }
+        .inbox-btn:hover, .report-btn:hover { background: var(--border); transform: scale(1.05); }
+        .inbox-badge {
+            position: absolute; top: -5px; right: -5px; background: #e74c3c;
+            color: white; font-size: 10px; font-weight: bold; min-width: 18px;
+            height: 18px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; padding: 0 4px; animation: pulse 1s infinite;
+        }
+
+        .user-info {
+            display: flex; align-items: center; gap: 10px; padding: 5px 12px;
+            background: var(--border); border-radius: 40px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .user-info:hover { background: var(--accent); transform: scale(1.05); }
+        .user-role-badge { background: var(--accent); color: white; padding: 4px 8px; border-radius: 20px; font-size: 10px; }
+        .avatar { width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        /* ============ PAGES ============ */
+        .page { display: none; padding: 20px; }
+        .page.active { display: block; }
+        .page-title { margin-bottom: 20px; font-size: 24px; color: var(--accent); }
+
+        /* ============ VIDEO ============ */
+        .video-container { display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .video-wrapper {
+            width: 100%; max-width: 500px; aspect-ratio: 1 / 1;
+            border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            background: #000; cursor: pointer; position: relative;
+            transition: all 0.3s ease;
+        }
+        .video-wrapper:hover { transform: scale(1.02); box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .video-wrapper video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .video-theme-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--video-overlay); pointer-events: none; z-index: 2;
+        }
+        .video-glow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(155,89,182,0.2) 0%, transparent 70%);
+            pointer-events: none; animation: glowPulse 3s infinite; border-radius: 24px; z-index: 1;
+        }
+        .video-light {
+            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            animation: shine 5s infinite; pointer-events: none; z-index: 1;
+        }
+
+        .action-buttons { text-align: center; margin: 20px 0; }
+        .action-btn { padding: 14px 40px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; transition: all 0.3s; font-family: inherit; letter-spacing: 1px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+
+        /* ============ INFO SECTION ============ */
+        .info-section {
+            margin-top: 30px;
+            background: var(--info-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .dropdown-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 25px; background: var(--card-bg); cursor: pointer;
+            transition: all 0.3s; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .dropdown-header:hover { background: var(--accent); color: white; }
+        .dropdown-header h3 { font-size: 20px; margin: 0; }
+        .dropdown-icon { font-size: 24px; transition: transform 0.3s ease; }
+        .dropdown-icon.open { transform: rotate(180deg); }
+        .dropdown-content { padding: 20px 25px; display: none; }
+        .dropdown-content.open { display: block; }
+
+        /* ============ UPDATE PREVIEW SLIDER ============ */
+        .update-preview-section {
+            margin-top: 30px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        .update-preview-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .update-preview-title .new-badge {
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        .update-edit-btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .update-edit-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .slider-container {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            padding: 10px 0;
+            cursor: grab;
+        }
+        .slider-container:active { cursor: grabbing; }
+        .slider-track {
+            display: flex;
+            gap: 20px;
+            padding: 5px;
+        }
+        .slide-item {
+            min-width: 280px;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            scroll-snap-align: start;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid var(--border);
+        }
+        .slide-item:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+        .slide-image {
+            width: 100%; height: 160px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 60px; background: var(--accent);
+        }
+        .slide-content { padding: 15px; }
+        .slide-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+        .slide-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+        .slide-date { font-size: 10px; color: var(--accent); margin-top: 8px; }
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .slider-prev, .slider-next {
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .slider-prev:hover, .slider-next:hover {
+            transform: scale(1.1);
+            background: var(--accent-hover);
+        }
+        .scroll-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            animation: bounce 1s infinite;
+        }
+
+        /* ============ INBOX STYLES ============ */
+        .inbox-modal { max-width: 550px !important; }
+        .inbox-list { max-height: 450px; overflow-y: auto; }
+        .inbox-item {
+            background: var(--card-bg);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .inbox-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+            transform: rotate(45deg);
+            animation: whiteFlashTitle 8s infinite;
+            pointer-events: none;
+        }
+        .inbox-item.unread { background: rgba(155, 89, 182, 0.1); border-left-color: #e74c3c; }
+        .inbox-item:hover { transform: translateX(5px); }
+        .inbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .inbox-title {
+            font-weight: bold;
+            font-size: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+        .inbox-title::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: rotate(45deg);
+            animation: whiteFlashTitle 4s infinite;
+            pointer-events: none;
+        }
+        .inbox-sender { font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 5px; }
+        .inbox-date { font-size: 10px; color: var(--text-secondary); }
+        .inbox-message { 
+            font-size: 13px; 
+            line-height: 1.5; 
+            margin: 10px 0; 
+            word-break: break-word;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .inbox-message a { color: #3498db; text-decoration: none; }
+        .inbox-message a:hover { text-decoration: underline; }
+        .reply-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .reply-item {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+        }
+        .reply-avatar { font-size: 24px; }
+        .reply-content { flex: 1; }
+        .reply-name { font-size: 12px; font-weight: bold; color: var(--accent); }
+        .reply-text { font-size: 12px; margin-top: 4px; }
+        .inbox-reply-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .inbox-reply-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .inbox-reply-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .inbox-reply-btn, .send-message-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .inbox-reply-btn:hover, .send-message-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(155,89,182,0.4);
+        }
+        .delete-inbox-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+        .delete-inbox-btn:hover {
+            transform: scale(1.05);
+            background: #c0392b;
+        }
+        
+        .new-message-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed var(--border);
+        }
+        .new-message-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        .new-message-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .new-message-input {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .new-message-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .new-message-textarea {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .new-message-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* ============ NOTIFICATION ============ */
+        .notification-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification-toast:hover {
+            transform: scale(1.02);
+        }
+
+        /* ============ LOADING OVERLAY ============ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10001;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.2s ease;
+        }
+        .loading-spinner-custom {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(155,89,182,0.3);
+            border-top: 5px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        .loading-text-custom {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* ============ REPORT STYLES ============ */
+        .report-modal { max-width: 500px !important; }
+        .report-form textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            margin: 15px 0;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+        .report-form textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .report-submit-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .report-submit-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(155,89,182,0.4);
+        }
+        .reports-list { max-height: 300px; overflow-y: auto; }
+        .report-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #e74c3c;
+            position: relative;
+            overflow: hidden;
+        }
+        .report-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+            transform: rotate(45deg);
+            animation: whiteFlashTitle 8s infinite;
+            pointer-events: none;
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .report-status {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .report-status.pending { background: #f39c12; color: white; }
+        .report-status.resolved { background: #27ae60; color: white; }
+        .report-text { font-size: 13px; margin-bottom: 8px; }
+        .report-reply {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        /* ============ PROFILE EDIT ============ */
+        .profile-edit-modal { max-width: 400px !important; }
+        .avatar-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .avatar-option {
+            font-size: 40px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .avatar-option:hover { transform: scale(1.2); background: var(--border); }
+        .avatar-option.selected { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .save-avatar-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .save-avatar-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(155,89,182,0.4);
+        }
+
+        /* ============ FILES & WEBSITES GRID ============ */
+        .files-grid, .websites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .file-card, .website-card {
+            background: var(--card-bg); border-radius: 16px;
+            box-shadow: var(--shadow); overflow: hidden;
+            transition: all 0.3s;
+        }
+        .file-card:hover, .website-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .file-card.new::before { content: "NEW"; position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; padding: 2px 10px; border-radius: 20px; font-size: 10px; animation: pulse 1.5s infinite; }
+        .file-card { position: relative; }
+        .file-icon { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); padding: 30px; text-align: center; font-size: 50px; }
+        .file-info { padding: 15px; }
+        .file-name { font-size: 14px; margin-bottom: 5px; word-break: break-word; }
+        .file-date { font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; }
+        .file-actions { display: flex; gap: 8px; }
+        .file-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .download-btn { background: #27ae60; color: white; }
+        .download-btn:hover { background: #219a52; transform: scale(1.05); }
+        .info-btn { background: var(--accent); color: white; }
+        .info-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+        .website-card { text-align: center; padding: 20px; cursor: pointer; }
+        .website-icon { font-size: 50px; margin-bottom: 10px; transition: transform 0.3s; }
+        .website-card:hover .website-icon { transform: scale(1.1); }
+        .website-name { font-size: 16px; margin-bottom: 5px; }
+        .website-url { font-size: 11px; color: var(--text-secondary); word-break: break-all; }
+
+        .stats-bar, .rating-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-item, .rating-stat-card {
+            background: var(--card-bg); padding: 15px; border-radius: 16px;
+            text-align: center; box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+        .stat-item:hover, .rating-stat-card:hover { transform: translateY(-3px); }
+        .stat-value, .rating-stat-number { font-size: 28px; font-weight: bold; color: var(--accent); }
+
+        .rating-stars-big { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
+        .rating-star { font-size: 35px; cursor: pointer; transition: all 0.2s; color: #f1c40f; }
+        .rating-star:hover { transform: scale(1.3); animation: bounce 0.3s ease; }
+        .comment-input-area { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .comment-input { flex: 1; padding: 10px 15px; border: 2px solid var(--border); border-radius: 16px; background: var(--bg-primary); color: var(--text-primary); font-family: inherit; transition: all 0.3s; }
+        .comment-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .comment-submit-btn { padding: 10px 20px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        .comment-submit-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(155,89,182,0.4); }
+        .comments-list { max-height: 400px; overflow-y: auto; }
+        .comment-item {
+            background: var(--card-bg); border-radius: 12px; padding: 12px;
+            margin-bottom: 10px; border-left: 3px solid #f1c40f;
+            transition: all 0.3s;
+        }
+        .comment-item:hover { transform: translateX(5px); }
+        .comment-header {
+            display: flex; flex-wrap: wrap; justify-content: space-between;
+            margin-bottom: 8px; gap: 8px;
+        }
+        .comment-user { font-weight: bold; color: var(--accent); }
+        .comment-rating { color: #f1c40f; font-size: 12px; }
+        .comment-date { font-size: 10px; color: var(--text-secondary); }
+        .comment-text { font-size: 13px; line-height: 1.4; }
+        .delete-comment-btn {
+            background: #e74c3c; color: white; border: none;
+            padding: 4px 10px; border-radius: 8px; cursor: pointer; font-size: 10px;
+            margin-top: 8px;
+        }
+
+        .admin-only { display: none; }
+        body.admin-mode .admin-only { display: block; }
+        .admin-section {
+            background: var(--card-bg); padding: 20px; border-radius: 16px;
+            margin-bottom: 20px; box-shadow: var(--shadow);
+        }
+        .admin-section form { display: flex; flex-direction: column; gap: 12px; }
+        .admin-section input, .admin-section textarea {
+            padding: 10px 12px; border: 2px solid var(--border);
+            border-radius: 12px; background: var(--bg-primary); color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        .admin-section input:focus, .admin-section textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .admin-section button { padding: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
+        .admin-section button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(155,89,182,0.4); }
+        .admin-files-list { max-height: 300px; overflow-y: auto; }
+        .admin-file-item {
+            display: flex; flex-wrap: wrap; justify-content: space-between;
+            align-items: center; padding: 10px; border-bottom: 1px solid var(--border);
+            gap: 10px;
+        }
+        .admin-delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .admin-delete-btn:hover { transform: scale(1.05); background: #c0392b; }
+
+        /* Running Text Admin Edit */
+        .running-text-edit {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .running-text-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        .running-text-save {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px); animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background: var(--bg-secondary); margin: 8% auto;
+            width: 90%; max-width: 600px; border-radius: 24px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 22px;
+            border-bottom: 2px solid var(--border);
+            background: linear-gradient(135deg, rgba(155,89,182,0.05), rgba(0,0,0,0.02));
+            border-radius: 24px 24px 0 0;
+        }
+        .modal-header h2 { font-size: 22px; color: var(--accent); }
+        .close { font-size: 28px; cursor: pointer; transition: all 0.3s; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .close:hover { transform: rotate(90deg) scale(1.1); color: var(--accent); background: var(--border); }
+        .modal-body { padding: 22px; }
+
+        .custom-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--bg-secondary); border-radius: 24px;
+            padding: 25px; min-width: 280px; max-width: 90%;
+            text-align: center; z-index: 10000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 2px solid var(--accent);
+            animation: fadeInUp 0.3s;
+        }
+        .custom-popup-icon { font-size: 60px; margin-bottom: 15px; animation: bounce 0.5s ease; }
+        .custom-popup-message { margin-bottom: 20px; line-height: 1.5; font-size: 15px; }
+        .custom-popup-button { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; border: none; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s; }
+        .custom-popup-button:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(155,89,182,0.4); }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+        /* Effects Off */
+        body.effects-off * {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+        }
+        body.effects-off .video-glow,
+        body.effects-off .video-light,
+        body.effects-off .modal-content::before,
+        body.effects-off .inbox-item::before,
+        body.effects-off .report-item::before {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 260px; left: -260px; }
+            .main-content.shifted { margin-left: 260px; }
+            .file-name { font-size: 12px; }
+            .page-title { font-size: 20px; }
+            .header { padding: 10px 15px; }
+            .video-wrapper { max-width: 350px; }
+            .rating-star { font-size: 28px; }
+            .dropdown-header h3 { font-size: 16px; }
+            .scroll-arrow { width: 40px; height: 40px; }
+            .scroll-arrow span { font-size: 22px; }
+            .slide-item { min-width: 240px; }
+            .notification-toast { bottom: 20px; right: 20px; padding: 10px 16px; font-size: 12px; }
+            .chibi-tooltip { font-size: 11px; padding: 8px 12px; white-space: nowrap; right: -15px; }
+            .chibi-tooltip::before { border-width: 4px 6px 4px 0; }
+        }
+        @media (max-width: 480px) {
+            .files-grid, .websites-grid { grid-template-columns: 1fr; }
+            .stats-bar, .rating-stats-grid { grid-template-columns: 1fr; }
+            .comment-header { flex-direction: column; }
+            .user-info span:not(.user-role-badge) { display: none; }
+            .video-wrapper { max-width: 280px; }
+            .slider-track { gap: 10px; }
+            .inbox-header { flex-direction: column; align-items: flex-start; }
+            .inbox-modal .modal-content { margin: 5% auto; width: 95%; }
+            .notification-toast { bottom: 15px; right: 15px; left: 15px; right: auto; border-radius: 30px; }
+            .chibi-tooltip { display: none; }
+        }
+    </style>
+</head>
+<body class="theme-light">
+    <!-- SCROLL INDICATOR -->
+    <div class="scroll-indicator" id="scrollIndicator">
+        <div class="scroll-arrow"><span>↓</span></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>📚 LIFX Library</h3>
+            <p>Perpustakaan Digital</p>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span>Beranda</span></div>
+            <div class="nav-item" data-page="files"><span class="nav-icon">📦</span><span>File ZIP</span></div>
+            <div class="nav-item" data-page="websites"><span class="nav-icon">🌐</span><span>Website</span></div>
+            <div class="nav-item" data-page="rating"><span class="nav-icon">⭐</span><span>Rating Map</span></div>
+            <div class="nav-item" data-page="akun"><span class="nav-icon">👥</span><span>Daftar Akun</span></div>
+            <div class="nav-item" data-page="gallery"><span class="nav-icon">🖼️</span><span>Gallery</span></div>
+            <div class="nav-item admin-only" data-page="admin"><span class="nav-icon">👑</span><span>Admin Panel</span></div>
+            <div class="nav-item" id="soundControlBtn"><span class="nav-icon" id="soundIcon">🔊</span><span id="soundText">Suara ON</span></div>
+            <div class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span><span>Keluar</span></div>
+        </nav>
+        
+        <!-- Anime Chibi dengan Tooltip -->
+        <div class="sidebar-chibi">
+            <img src="assets/images/chibi.png" alt="anime chibi" onerror="this.style.display='none'">
+            <div class="chibi-tooltip">apaa!! 💕</div>
+        </div>
+        
+        <!-- Footer Credit dengan Tooltip Owner -->
+        <div class="footer-credit" id="ownerCredit">
+            <span>web by alifdiaz</span>
+            <div class="owner-tooltip">👨‍💻 Owner Website - alifdiaz</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+            <div class="header-right">
+                <button class="report-btn" id="reportBtn" title="Lapor ke Admin">📢</button>
+                <div class="inbox-container">
+                    <button class="inbox-btn" id="inboxBtn" title="Pesan Masuk">📬</button>
+                    <span class="inbox-badge" id="inboxBadge" style="display: none;">0</span>
+                </div>
+                <button class="settings-btn" id="settingsBtn">⚙️</button>
+                <label class="switch"><input type="checkbox" id="themeToggleCheckbox"><span class="slider"></span></label>
+                <div class="user-info" id="profileBtn">
+                    <span class="user-role-badge" id="userRoleBadge">Guest</span>
+                    <span id="currentUser">Guest</span>
+                    <div class="avatar" id="userAvatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- RUNNING TEXT di bawah header -->
+        <div class="running-text-container">
+            <div class="running-text" id="runningText">✨ Selamat datang di LIFX Library! ✨ Nikmati berbagai koleksi file ZIP dan fitur menarik lainnya ✨</div>
+        </div>
+
+        <main>
+            <!-- HOME PAGE -->
+            <div id="homePage" class="page active">
+                <div class="video-container">
+                    <div class="video-wrapper" id="videoWrapper">
+                        <video id="mainVideo" loop playsinline preload="auto">
+                            <source src="assets/sad.mp4" type="video/mp4">
+                            <source src="assets/videos/background.webm" type="video/webm">
+                            Video tidak didukung browser Anda
+                        </video>
+                        <div class="video-theme-overlay"></div>
+                        <div class="video-glow"></div>
+                        <div class="video-light"></div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn" id="openZipModalBtn">📁 BUKA FILE ZIP</button>
+                </div>
+
+                <!-- INFO SECTION -->
+                <div class="info-section" id="infoSection">
+                    <div class="dropdown-header" id="dropdownHeader">
+                        <h3>📖 Info Lengkap & Langkah-langkah Penggunaan</h3>
+                        <span class="dropdown-icon" id="dropdownIcon">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <h4>📌 Tentang LIFX Library</h4>
+                        <p><strong>LIFX Library</strong> adalah platform perpustakaan digital modern dengan tema ungu yang elegan.</p>
+                        <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="info-card" style="background: var(--card-bg); padding: 15px; border-radius: 12px;"><div class="emoji">📚</div><h5>Koleksi Lengkap</h5></div>
+                            <div class="info-card" style="background: var(--card-bg); padding: 15px; border-radius: 12px;"><div class="emoji">⚡</div><h5>Cepat & Mudah</h5></div>
+                            <div class="info-card" style="background: var(--card-bg); padding: 15px; border-radius: 12px;"><div class="emoji">🔒</div><h5>Aman & Terpercaya</h5></div>
+                            <div class="info-card" style="background: var(--card-bg); padding: 15px; border-radius: 12px;"><div class="emoji">🎨</div><h5>Tema Ungu</h5></div>
+                        </div>
+                        <h4>✨ Fitur Unggulan</h4>
+                        <ul><li>📦 Manajemen File ZIP</li><li>⭐ Rating & Komentar</li><li>🌐 Website Tersimpan</li><li>👑 Admin Panel</li><li>🎨 Dark/Light Mode Ungu</li><li>⚙️ Anti-Lag Mode</li><li>📬 Inbox Pesan</li><li>📢 Laporan & Saran</li><li>🖼️ Gallery Kenangan</li></ul>
+                        <h4>📋 Langkah-langkah Penggunaan</h4>
+                        <ol><li>Guest Mode - Klik "GUEST" untuk masuk tanpa daftar</li><li>Buat Akun - Daftar dengan username & password</li><li>Login - Masuk dengan akun yang sudah terdaftar</li><li>Lihat File ZIP - Klik menu "File ZIP"</li><li>Download File - Klik tombol Download</li><li>Rating & Komentar - Buka menu "Rating Map"</li><li>Ganti Tema - Klik toggle switch di pojok kanan</li><li>Inbox - Cek pesan dari admin</li><li>Lapor - Kirim saran/laporan ke admin</li></ol>
+                        <h4>👤 Perbedaan Role</h4>
+                        <ul><li>👻 Guest - Hanya lihat file</li><li>👤 User - Bisa download, rating, komentar</li><li>👑 Admin - Akses penuh: upload, hapus, kelola akun, balas pesan</li></ul>
+                    </div>
+                </div>
+
+                <!-- UPDATE PREVIEW SECTION -->
+                <div class="update-preview-section" id="updatePreview">
+                    <div class="update-preview-title">
+                        <span>🚀 Update Mendatang <span class="new-badge" id="newUpdateBadge" style="display: none;">NEW</span></span>
+                        <button class="update-edit-btn admin-only" id="editUpdateBtn">✏️ Kelola Update</button>
+                    </div>
+                    <div class="slider-container" id="sliderContainer">
+                        <div class="slider-track" id="sliderTrack"></div>
+                    </div>
+                    <div class="slider-controls">
+                        <button class="slider-prev" id="sliderPrev">❮</button>
+                        <button class="slider-next" id="sliderNext">❯</button>
+                    </div>
+                    <div class="scroll-hint">← Geser atau klik panah untuk melihat update →</div>
+                </div>
+            </div>
+
+            <!-- FILES PAGE -->
+            <div id="filesPage" class="page">
+                <h2 class="page-title">📦 File ZIP Tersimpan</h2>
+                <div class="stats-bar">
+                    <div class="stat-item"><div class="stat-label">Total File</div><div class="stat-value" id="totalFiles">0</div></div>
+                    <div class="stat-item"><div class="stat-label">Total Size</div><div class="stat-value" id="totalSize">0 MB</div></div>
+                </div>
+                <div class="files-grid" id="filesGrid"></div>
+            </div>
+
+            <!-- WEBSITES PAGE -->
+            <div id="websitesPage" class="page">
+                <h2 class="page-title">🌐 Website Tersimpan</h2>
+                <div class="websites-grid" id="websitesGrid"></div>
+            </div>
+
+            <!-- RATING PAGE -->
+            <div id="ratingPage" class="page">
+                <h2 class="page-title">⭐ Rating Map</h2>
+                <div class="rating-stats-grid">
+                    <div class="rating-stat-card"><div class="rating-stat-number" id="avgRatingDisplay">0.0</div><div>Rating Rata-rata</div></div>
+                    <div class="rating-stat-card"><div class="rating-stat-number" id="totalRatingsCount">0</div><div>Total Rating</div></div>
+                    <div class="rating-stat-card"><div class="rating-stat-number" id="percentageRating">0%</div><div>Persentase Rating</div></div>
+                </div>
+                <div style="background: var(--card-bg); border-radius: 16px; padding: 20px;">
+                    <h3>Berikan Rating & Komentar</h3>
+                    <div class="rating-stars-big" id="userRatingStars">
+                        <span class="rating-star" data-value="1">☆</span>
+                        <span class="rating-star" data-value="2">☆</span>
+                        <span class="rating-star" data-value="3">☆</span>
+                        <span class="rating-star" data-value="4">☆</span>
+                        <span class="rating-star" data-value="5">☆</span>
+                    </div>
+                    <div class="comment-input-area">
+                        <input type="text" class="comment-input" id="commentInput" placeholder="Tulis komentar...">
+                        <button class="comment-submit-btn" id="submitCommentBtn">Kirim</button>
+                    </div>
+                    <div class="comments-list" id="commentsList"></div>
+                </div>
+            </div>
+
+            <!-- AKUN PAGE -->
+            <div id="akunPage" class="page">
+                <h2 class="page-title">👥 Daftar Akun Terdaftar</h2>
+                <div class="admin-section">
+                    <div class="stats-bar">
+                        <div class="stat-item"><div class="stat-label">Total Akun</div><div class="stat-value" id="totalAkun">0</div></div>
+                        <div class="stat-item"><div class="stat-label">Total User</div><div class="stat-value" id="totalUser">0</div></div>
+                        <div class="stat-item"><div class="stat-label">Total Admin</div><div class="stat-value" id="totalAdmin">0</div></div>
+                    </div>
+                    <div class="admin-files-list" id="akunList"></div>
+                </div>
+            </div>
+
+            <!-- GALLERY PAGE -->
+            <div id="galleryPage" class="page">
+                <h2 class="page-title">🖼️ Gallery Kenangan LIFX</h2>
+                <div style="text-align: center; padding: 20px;">
+                    <button class="action-btn" onclick="window.location.href='gallery.html'" style="margin:10px;">📸 BUKA GALLERY</button>
+                </div>
+            </div>
+
+            <!-- ADMIN PAGE -->
+            <div id="adminPage" class="page">
+                <div id="adminContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="zipModal" class="modal"><div class="modal-content"><div class="modal-header"><h2>📁 File ZIP</h2><span class="close">&times;</span></div><div class="modal-body" id="zipModalBody"></div></div></div>
+    <div id="infoModal" class="modal"><div class="modal-content"><div class="modal-header"><h2>ℹ️ Informasi</h2><span class="close-info">&times;</span></div><div class="modal-body" id="infoModalBody"></div></div></div>
+    <div id="settingsModal" class="modal"><div class="modal-content"><div class="modal-header"><h2>⚙️ Pengaturan</h2><span class="close-settings">&times;</span></div><div class="modal-body"><div><strong>Nonaktifkan Efek & Animasi</strong><br><small>Matikan semua animasi untuk performa lebih ringan (Anti-Lag)</small><br><label class="switch" style="margin-top:10px"><input type="checkbox" id="effectsToggle"><span class="slider"></span></label></div></div></div></div>
+    
+    <!-- INBOX MODAL -->
+    <div id="inboxModal" class="modal"><div class="modal-content inbox-modal"><div class="modal-header"><h2>📬 Pesan Masuk</h2><span class="close-inbox">&times;</span></div><div class="modal-body" id="inboxModalBody"></div></div></div>
+    <div id="reportModal" class="modal"><div class="modal-content report-modal"><div class="modal-header"><h2>📢 Laporkan Masalah / Saran</h2><span class="close-report">&times;</span></div><div class="modal-body" id="reportModalBody"></div></div></div>
+    <div id="profileEditModal" class="modal"><div class="modal-content profile-edit-modal"><div class="modal-header"><h2>✏️ Edit Profil</h2><span class="close-profile">&times;</span></div><div class="modal-body" id="profileEditBody"></div></div></div>
+    <div id="updateEditModal" class="modal"><div class="modal-content"><div class="modal-header"><h2>✏️ Kelola Update Mendatang</h2><span class="close-update">&times;</span></div><div class="modal-body" id="updateEditBody"></div></div></div>
+    <div id="runningTextModal" class="modal"><div class="modal-content"><div class="modal-header"><h2>✏️ Edit Teks Berjalan</h2><span class="close-running">&times;</span></div><div class="modal-body" id="runningTextBody"></div></div></div>
+
+    <script>
+        // ==================== SCROLL INDICATOR ====================
+        const scrollIndicator = document.getElementById('scrollIndicator');
+        const infoSection = document.getElementById('infoSection');
+        function checkScroll() {
+            if (!infoSection) return;
+            const rect = infoSection.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            if (rect.top < windowHeight - 100) { scrollIndicator.classList.add('hide'); }
+            else { scrollIndicator.classList.remove('hide'); }
+        }
+        scrollIndicator.addEventListener('click', () => { infoSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+        window.addEventListener('load', checkScroll);
+        window.addEventListener('scroll', checkScroll);
+        window.addEventListener('resize', checkScroll);
+
+        // ==================== DROPDOWN TOGGLE ====================
+        const dropdownHeader = document.getElementById('dropdownHeader');
+        const dropdownContent = document.getElementById('dropdownContent');
+        const dropdownIcon = document.getElementById('dropdownIcon');
+        let isOpen = false;
+        dropdownHeader.addEventListener('click', () => {
+            isOpen = !isOpen;
+            dropdownContent.classList.toggle('open', isOpen);
+            dropdownIcon.classList.toggle('open', isOpen);
+            dropdownIcon.innerHTML = isOpen ? '▲' : '▼';
+        });
+
+        // ==================== CUSTOM ALERT ====================
+        function customAlert(message, icon = 'ℹ️') {
+            return new Promise((resolve) => {
+                const existing = document.querySelector('.custom-popup');
+                if (existing) existing.remove();
+                const popup = document.createElement('div');
+                popup.className = 'custom-popup';
+                popup.innerHTML = `<div class="custom-popup-icon">${icon}</div><div class="custom-popup-message">${message}</div><div class="custom-popup-buttons"><button class="custom-popup-button" id="popupOkBtn">OK</button></div>`;
+                document.body.appendChild(popup);
+                document.getElementById('popupOkBtn').onclick = () => { popup.remove(); resolve(); };
+            });
+        }
+        window.alert = customAlert;
+
+        // ==================== LOADING OVERLAY ====================
+        function showLoading(message = 'Mengirim...') {
+            const overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `<div class="loading-spinner-custom"></div><div class="loading-text-custom">${message}</div>`;
+            document.body.appendChild(overlay);
+        }
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.remove();
+        }
+        function showSuccessCheck(message) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'loading-overlay';
+                overlay.innerHTML = `
+                    <div style="width:80px;height:80px;position:relative;margin-bottom:20px;">
+                        <div style="width:80px;height:80px;background:#28a745;border-radius:50%;position:absolute;animation:scaleUp 0.5s cubic-bezier(0.34,1.2,0.64,1);"></div>
+                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);color:white;font-size:45px;font-weight:bold;animation:checkPop 0.4s ease 0.3s forwards;">✓</div>
+                    </div>
+                    <div class="loading-text-custom">${message}</div>
+                `;
+                document.body.appendChild(overlay);
+                setTimeout(() => {
+                    overlay.style.animation = 'fadeOut 0.3s ease forwards';
+                    setTimeout(() => overlay.remove(), 300);
+                    resolve();
+                }, 1500);
+            });
+        }
+
+        // ==================== NOTIFICATION ====================
+        function showNotification(message, icon = '📬') {
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.innerHTML = `<span style="font-size:20px;">${icon}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+            toast.onclick = () => {
+                if (message.includes('pesan') || message.includes('inbox')) {
+                    document.getElementById('inboxModal').style.display = 'block';
+                    renderInboxModal();
+                }
+                toast.remove();
+            };
+        }
+
+        // ==================== RUNNING TEXT ====================
+        let currentRunningText = "✨ Selamat datang di LIFX Library! ✨ Nikmati berbagai koleksi file ZIP dan fitur menarik lainnya ✨";
+        const runningTextElement = document.getElementById('runningText');
+        
+        function updateRunningText(newText, showFade = true) {
+            if (showFade) {
+                runningTextElement.classList.add('fade-out-text');
+                setTimeout(() => {
+                    runningTextElement.textContent = newText;
+                    runningTextElement.classList.remove('fade-out-text');
+                    runningTextElement.classList.add('fade-in-text');
+                    setTimeout(() => {
+                        runningTextElement.classList.remove('fade-in-text');
+                    }, 300);
+                }, 300);
+            } else {
+                runningTextElement.textContent = newText;
+            }
+            currentRunningText = newText;
+            localStorage.setItem('lifx_running_text', newText);
+        }
+        
+        function showRunningTextEditor() {
+            if (currentUserRole !== 'admin') return;
+            const body = document.getElementById('runningTextBody');
+            body.innerHTML = `
+                <div class="new-message-section">
+                    <div class="new-message-title">✏️ Edit Teks Berjalan</div>
+                    <div class="new-message-form">
+                        <input type="text" id="runningTextInput" class="new-message-input" value="${escapeHtml(currentRunningText)}" placeholder="Masukkan teks berjalan...">
+                        <button id="saveRunningTextBtn" class="inbox-reply-btn">Simpan Perubahan</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('saveRunningTextBtn').onclick = () => {
+                const newText = document.getElementById('runningTextInput').value.trim();
+                if (newText) {
+                    updateRunningText(newText, true);
+                    document.getElementById('runningTextModal').style.display = 'none';
+                    showNotification('✅ Teks berjalan telah diubah!', '✏️');
+                } else {
+                    customAlert('Teks tidak boleh kosong!', '⚠️');
+                }
+            };
+            document.getElementById('runningTextModal').style.display = 'block';
+        }
+
+        // ==================== VIDEO ====================
+        const video = document.getElementById('mainVideo');
+        const soundBtn = document.getElementById('soundControlBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const soundText = document.getElementById('soundText');
+        let soundOn = true;
+        function updateSoundUI() { soundIcon.innerHTML = soundOn ? '🔊' : '🔇'; soundText.innerHTML = soundOn ? 'Suara ON' : 'Suara OFF'; }
+        function toggleSound() { soundOn = !soundOn; video.muted = !soundOn; updateSoundUI(); localStorage.setItem('lifx_sound', soundOn); }
+        function initVideo() { video.muted = false; video.loop = true; video.playsInline = true; video.play().catch(()=>{}); }
+        const savedSound = localStorage.getItem('lifx_sound');
+        if (savedSound !== null) { soundOn = savedSound === 'true'; video.muted = !soundOn; updateSoundUI(); }
+        initVideo();
+        if (soundBtn) soundBtn.onclick = toggleSound;
+
+        // ==================== USER SYSTEM ====================
+        let currentUserRole = 'guest';
+        let currentUsername = 'Guest';
+        let accountsData = [];
+        
+        function loadUser() {
+            const savedUser = localStorage.getItem('lifx_user');
+            const savedRole = localStorage.getItem('lifx_role');
+            const savedRunningText = localStorage.getItem('lifx_running_text');
+            if (savedUser && savedRole) { currentUsername = savedUser; currentUserRole = savedRole; }
+            else { currentUsername = 'Guest'; currentUserRole = 'guest'; }
+            if (savedRunningText) {
+                currentRunningText = savedRunningText;
+                updateRunningText(currentRunningText, false);
+            }
+            updateUI();
+        }
+        
+        function loadAccounts() {
+            const stored = localStorage.getItem('lifx_accounts');
+            if (stored) accountsData = JSON.parse(stored);
+            else accountsData = [
+                { username: 'admin', password: 'admin123', role: 'admin', createdAt: new Date().toISOString(), avatar: '👑' },
+                { username: 'user', password: 'user123', role: 'user', createdAt: new Date().toISOString(), avatar: '👤' }
+            ];
+        }
+        
+        function updateUI() {
+            const savedAvatar = localStorage.getItem('lifx_avatar');
+            if (currentUserRole === 'admin') {
+                document.body.classList.add('admin-mode');
+                document.getElementById('userRoleBadge').innerText = 'Admin';
+                document.getElementById('userRoleBadge').style.background = '#e74c3c';
+                document.getElementById('userAvatar').innerHTML = savedAvatar || '👑';
+            } else if (currentUserRole === 'user') {
+                document.body.classList.remove('admin-mode');
+                document.getElementById('userRoleBadge').innerText = 'User';
+                document.getElementById('userRoleBadge').style.background = '#27ae60';
+                document.getElementById('userAvatar').innerHTML = savedAvatar || '👤';
+            } else {
+                document.body.classList.remove('admin-mode');
+                document.getElementById('userRoleBadge').innerText = 'Guest';
+                document.getElementById('userRoleBadge').style.background = '#7f8c8d';
+                document.getElementById('userAvatar').innerHTML = '👻';
+            }
+            document.getElementById('currentUser').innerText = currentUsername;
+        }
+        
+        function getAvatar() { return localStorage.getItem('lifx_avatar') || (currentUserRole === 'admin' ? '👑' : (currentUserRole === 'user' ? '👤' : '👻')); }
+
+        // ==================== RATING SYSTEM ====================
+        let ratings = [], comments = [];
+        function loadRatings() {
+            const r = localStorage.getItem('lifx_ratings');
+            const c = localStorage.getItem('lifx_comments');
+            ratings = r ? JSON.parse(r) : [];
+            comments = c ? JSON.parse(c) : [];
+            updateRatingDisplay();
+            renderComments();
+        }
+        function saveRatings() { localStorage.setItem('lifx_ratings', JSON.stringify(ratings)); }
+        function saveComments() { localStorage.setItem('lifx_comments', JSON.stringify(comments)); }
+        function getAvgRating() { if (ratings.length === 0) return 0; return ratings.reduce((a,b) => a + b.rating, 0) / ratings.length; }
+        function getUserRating() { const r = ratings.find(r => r.username === currentUsername); return r ? r.rating : null; }
+        function setUserRating(rating) {
+            const existing = ratings.find(r => r.username === currentUsername);
+            if (existing) existing.rating = rating;
+            else ratings.push({ username: currentUsername, rating, date: new Date().toISOString() });
+            saveRatings();
+            updateRatingDisplay();
+            showNotification(`⭐ Memberi rating ${rating} bintang!`, '⭐');
+        }
+        function updateRatingDisplay() {
+            const avg = getAvgRating();
+            const total = ratings.length;
+            const percent = avg / 5 * 100;
+            document.getElementById('avgRatingDisplay').innerText = avg.toFixed(1);
+            document.getElementById('totalRatingsCount').innerText = total;
+            document.getElementById('percentageRating').innerText = percent.toFixed(1) + '%';
+            const userRating = getUserRating();
+            if (userRating && currentUserRole !== 'guest') updateStarsDisplay(userRating);
+        }
+        function updateStarsDisplay(rating) {
+            const stars = document.querySelectorAll('#userRatingStars .rating-star');
+            stars.forEach((s, i) => { s.innerHTML = i < rating ? '★' : '☆'; });
+        }
+        function initRatingStars() {
+            const stars = document.querySelectorAll('#userRatingStars .rating-star');
+            stars.forEach(star => {
+                star.onclick = () => {
+                    if (currentUserRole === 'guest') { customAlert('Login dulu untuk rating!', '👤'); return; }
+                    const val = parseInt(star.dataset.value);
+                    setUserRating(val);
+                    updateStarsDisplay(val);
+                };
+                star.onmouseenter = () => {
+                    if (currentUserRole === 'guest') return;
+                    const val = parseInt(star.dataset.value);
+                    stars.forEach((s, i) => { s.innerHTML = i < val ? '★' : '☆'; });
+                };
+                star.onmouseleave = () => {
+                    const userRating = getUserRating();
+                    if (userRating) updateStarsDisplay(userRating);
+                    else stars.forEach(s => s.innerHTML = '☆');
+                };
+            });
+        }
+        async function addComment() {
+            if (currentUserRole === 'guest') { customAlert('Login dulu untuk komentar!', '👤'); return; }
+            const text = document.getElementById('commentInput').value.trim();
+            if (!text) { customAlert('Komentar tidak boleh kosong!', '⚠️'); return; }
+            const userRating = getUserRating();
+            if (!userRating) { customAlert('Beri rating dulu sebelum komentar!', '⭐'); return; }
+            comments.unshift({ id: Date.now(), username: currentUsername, rating: userRating, comment: text, date: new Date().toISOString(), role: currentUserRole });
+            saveComments();
+            renderComments();
+            document.getElementById('commentInput').value = '';
+            showNotification('💬 Komentar terkirim!', '💬');
+        }
+        async function deleteComment(id) {
+            if (currentUserRole !== 'admin') { customAlert('Hanya admin!', '⛔'); return; }
+            comments = comments.filter(c => c.id !== id);
+            saveComments();
+            renderComments();
+            showNotification('🗑️ Komentar dihapus!', '🗑️');
+        }
+        function renderComments() {
+            const container = document.getElementById('commentsList');
+            if (!container) return;
+            if (comments.length === 0) { container.innerHTML = '<div class="empty-state">Belum ada komentar...</div>'; return; }
+            container.innerHTML = comments.map(c => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <div><span class="comment-user">${escapeHtml(c.username)}</span>${c.role === 'admin' ? ' <span style="background:#e74c3c;color:white;padding:2px 6px;border-radius:10px;font-size:10px;">Admin</span>' : ''}</div>
+                        <div class="comment-rating">${'★'.repeat(c.rating)}${'☆'.repeat(5-c.rating)}</div>
+                        <div class="comment-date">${new Date(c.date).toLocaleString()}</div>
+                    </div>
+                    <div class="comment-text">${escapeHtml(c.comment)}</div>
+                    ${currentUserRole === 'admin' ? `<button class="delete-comment-btn" onclick="deleteComment(${c.id})">Hapus</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // ==================== AKUN PAGE ====================
+        function renderAkunPage() {
+            const container = document.getElementById('akunList');
+            const totalAkunSpan = document.getElementById('totalAkun');
+            const totalUserSpan = document.getElementById('totalUser');
+            const totalAdminSpan = document.getElementById('totalAdmin');
+            if (!container) return;
+            const totalAkun = accountsData.length;
+            const totalUser = accountsData.filter(a => a.role === 'user').length;
+            const totalAdmin = accountsData.filter(a => a.role === 'admin').length;
+            totalAkunSpan.innerText = totalAkun;
+            totalUserSpan.innerText = totalUser;
+            totalAdminSpan.innerText = totalAdmin;
+            if (accountsData.length === 0) { container.innerHTML = '<div class="empty-state">Belum ada akun terdaftar</div>'; return; }
+            container.innerHTML = accountsData.map(acc => `
+                <div class="admin-file-item">
+                    <div><strong>${escapeHtml(acc.username)}</strong><br><small>Role: ${acc.role === 'admin' ? '👑 Admin' : '👤 User'} | Bergabung: ${new Date(acc.createdAt).toLocaleDateString('id-ID')}</small></div>
+                    <div>${currentUserRole === 'admin' && acc.username !== currentUsername ? `<button class="admin-delete-btn" onclick="deleteAkun('${acc.username}')">Hapus</button>` : ''}</div>
+                </div>
+            `).join('');
+        }
+        async function deleteAkun(username) {
+            if (currentUserRole !== 'admin') return;
+            const confirmed = await customConfirm(`Hapus akun "${username}"?`, '⚠️');
+            if (confirmed) {
+                accountsData = accountsData.filter(a => a.username !== username);
+                localStorage.setItem('lifx_accounts', JSON.stringify(accountsData));
+                renderAkunPage();
+                showNotification(`🗑️ Akun "${username}" dihapus!`, '🗑️');
+            }
+        }
+        function customConfirm(msg, icon) {
+            return new Promise((resolve) => {
+                const popup = document.createElement('div');
+                popup.className = 'custom-popup';
+                popup.innerHTML = `<div class="custom-popup-icon">${icon}</div><div class="custom-popup-message">${msg}</div><div class="custom-popup-buttons"><button class="custom-popup-button confirm-yes" id="confirmYes" style="background:#27ae60;margin-right:10px">Ya</button><button class="custom-popup-button confirm-no" id="confirmNo" style="background:#e74c3c">Tidak</button></div>`;
+                document.body.appendChild(popup);
+                document.getElementById('confirmYes').onclick = () => { popup.remove(); resolve(true); };
+                document.getElementById('confirmNo').onclick = () => { popup.remove(); resolve(false); };
+            });
+        }
+
+        // ==================== DATA FILES ====================
+        let filesData = [], websitesData = [];
+        function loadData() {
+            const f = localStorage.getItem('lifx_files');
+            const w = localStorage.getItem('lifx_websites');
+            filesData = f ? JSON.parse(f) : [];
+            websitesData = w ? JSON.parse(w) : [{ id:1, name:'Google', url:'https://google.com', icon:'🌐' }, { id:2, name:'GitHub', url:'https://github.com', icon:'🐙' }];
+            saveWebsites();
+        }
+        function saveFiles() { localStorage.setItem('lifx_files', JSON.stringify(filesData)); }
+        function saveWebsites() { localStorage.setItem('lifx_websites', JSON.stringify(websitesData)); }
+
+        function renderFiles() {
+            const grid = document.getElementById('filesGrid');
+            if (!grid) return;
+            if (filesData.length === 0) { grid.innerHTML = '<div class="empty-state">📂 Belum ada file</div>'; }
+            else {
+                grid.innerHTML = filesData.map(f => `
+                    <div class="file-card ${!f.viewed ? 'new' : ''}">
+                        <div class="file-icon">📦</div>
+                        <div class="file-info">
+                            <div class="file-name">${escapeHtml(f.name)}</div>
+                            <div class="file-date">${f.date} ${f.time}</div>
+                            <div class="file-actions">
+                                <button class="download-btn" onclick="downloadFile(${f.id})">Download</button>
+                                <button class="info-btn" onclick="showInfo(${f.id})">Info</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('totalFiles').innerText = filesData.length;
+            const totalSize = filesData.reduce((s,f) => s + (f.size || 0), 0);
+            document.getElementById('totalSize').innerText = totalSize.toFixed(1);
+        }
+        
+        function renderWebsites() {
+            const grid = document.getElementById('websitesGrid');
+            if (!grid) return;
+            if (websitesData.length === 0) { grid.innerHTML = '<div class="empty-state">🌐 Belum ada website</div>'; }
+            else {
+                grid.innerHTML = websitesData.map(w => `
+                    <div class="website-card" onclick="window.open('${w.url}', '_blank')">
+                        <div class="website-icon">${w.icon}</div>
+                        <div class="website-name">${escapeHtml(w.name)}</div>
+                        <div class="website-url">${escapeHtml(w.url)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function renderAdminPanel() {
+            const container = document.getElementById('adminContent');
+            if (!container) return;
+            if (currentUserRole !== 'admin') {
+                container.innerHTML = '<div class="empty-state">⛔ Akses hanya untuk Admin</div>';
+                return;
+            }
+            container.innerHTML = `
+                <h2 class="page-title">👑 Admin Panel</h2>
+                <div class="admin-section"><h3>📤 Upload File</h3><form id="uploadForm"><input type="file" id="zipFile" accept=".zip"><input type="text" id="fileDesc" placeholder="Deskripsi"><button type="submit">Upload</button></form></div>
+                <div class="admin-section"><h3>📋 Daftar File</h3><div class="admin-files-list" id="adminFilesList"></div></div>
+                <div class="admin-section"><h3>➕ Tambah Website</h3><form id="addWebsiteForm"><input type="text" id="websiteName" placeholder="Nama"><input type="url" id="websiteUrl" placeholder="URL"><input type="text" id="websiteIcon" placeholder="Icon" value="🌐"><button type="submit">Tambah</button></form></div>
+                <div class="admin-section"><h3>📢 Edit Teks Berjalan</h3><button id="editRunningTextBtn" class="button" style="width:100%;">✏️ Ubah Teks Berjalan</button></div>
+            `;
+            renderAdminFilesList();
+            document.getElementById('uploadForm')?.addEventListener('submit', async (e) => { e.preventDefault(); await uploadFile(); });
+            document.getElementById('addWebsiteForm')?.addEventListener('submit', async (e) => { e.preventDefault(); await addWebsite(); });
+            document.getElementById('editRunningTextBtn')?.addEventListener('click', showRunningTextEditor);
+        }
+        
+        function renderAdminFilesList() {
+            const container = document.getElementById('adminFilesList');
+            if (!container) return;
+            if (filesData.length === 0) { container.innerHTML = '<div class="empty-state">Kosong</div>'; return; }
+            container.innerHTML = filesData.map(f => `
+                <div class="admin-file-item">
+                    <div><strong>${escapeHtml(f.name)}</strong><br><small>${f.size || 0} MB | ${f.date}</small></div>
+                    <button class="admin-delete-btn" onclick="deleteFile(${f.id})">Hapus</button>
+                </div>
+            `).join('');
+        }
+        
+        async function uploadFile() {
+            const file = document.getElementById('zipFile').files[0];
+            const desc = document.getElementById('fileDesc').value;
+            if (!file) { customAlert('Pilih file!', '⚠️'); return; }
+            const newFile = { id: Date.now(), name: file.name, size: (file.size/1048576).toFixed(2), date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString().slice(0,5), description: desc, viewed: false };
+            filesData.push(newFile);
+            saveFiles();
+            renderFiles(); renderAdminPanel();
+            showNotification(`✅ Upload ${file.name} berhasil!`, '📤');
+        }
+        
+        async function addWebsite() {
+            const name = document.getElementById('websiteName').value;
+            const url = document.getElementById('websiteUrl').value;
+            const icon = document.getElementById('websiteIcon').value;
+            if (!name || !url) { customAlert('Isi semua!', '⚠️'); return; }
+            websitesData.push({ id: Date.now(), name, url, icon: icon || '🌐' });
+            saveWebsites();
+            renderWebsites(); renderAdminPanel();
+            showNotification(`✅ Website ${name} ditambahkan!`, '🌐');
+        }
+        
+        async function deleteFile(id) {
+            filesData = filesData.filter(f => f.id !== id);
+            saveFiles();
+            renderFiles(); renderAdminPanel();
+            showNotification('🗑️ File dihapus!', '🗑️');
+        }
+        
+        function showZipModal() {
+            const modal = document.getElementById('zipModal');
+            const body = document.getElementById('zipModalBody');
+            if (filesData.length === 0) body.innerHTML = '<div class="empty-state">Kosong</div>';
+            else body.innerHTML = `<div class="files-grid">${filesData.map(f => `<div class="file-card"><div class="file-icon">📦</div><div class="file-info"><div class="file-name">${escapeHtml(f.name)}</div><div class="file-date">${f.date}</div><div class="file-actions"><button class="download-btn" onclick="downloadFile(${f.id});closeModal('zipModal')">Download</button><button class="info-btn" onclick="showInfo(${f.id});closeModal('zipModal')">Info</button></div></div></div>`).join('')}</div>`;
+            modal.style.display = 'block';
+        }
+        
+        window.downloadFile = function(id) {
+            const file = filesData.find(f => f.id === id);
+            if (file) {
+                file.viewed = true; saveFiles();
+                const blob = new Blob([`File: ${file.name}\nSize: ${file.size} MB\nDesc: ${file.description || '-'}`], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = file.name.replace('.zip','.txt'); a.click();
+                URL.revokeObjectURL(url);
+                showNotification(`📥 Download ${file.name}`, '📥');
+                renderFiles();
+            }
+        };
+        
+        window.showInfo = function(id) {
+            const file = filesData.find(f => f.id === id);
+            if (file) {
+                document.getElementById('infoModalBody').innerHTML = `<p>📄 Nama: ${escapeHtml(file.name)}</p><p>📦 Ukuran: ${file.size} MB</p><p>📅 Tanggal: ${file.date}</p><p>📝 Deskripsi: ${escapeHtml(file.description) || '-'}</p>`;
+                document.getElementById('infoModal').style.display = 'block';
+            }
+        };
+        
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ==================== UPDATE PREVIEW SLIDER ====================
+        let updates = [
+            { id: 1, title: "⭐ Fitur Rating Baru", desc: "Rating dengan animasi bintang yang lebih menarik", date: "Coming Soon", image: "⭐" },
+            { id: 2, title: "📱 Mobile App", desc: "Aplikasi Android untuk LIFX Library", date: "Q1 2025", image: "📱" },
+            { id: 3, title: "🔍 Pencarian File", desc: "Cari file ZIP dengan mudah", date: "Next Update", image: "🔍" },
+            { id: 4, title: "💬 Live Chat", desc: "Chat real-time dengan admin", date: "Coming Soon", image: "💬" },
+            { id: 5, title: "🌙 Dark Mode Enhanced", desc: "Tema gelap yang lebih nyaman", date: "Next Update", image: "🌙" }
+        ];
+        let currentSlideIndexGlobal = 0;
+        let slideInterval;
+        let newUpdateSeen = false;
+
+        function renderSlider() {
+            const track = document.getElementById('sliderTrack');
+            if (!track) return;
+            track.innerHTML = updates.map(update => `
+                <div class="slide-item" data-id="${update.id}">
+                    <div class="slide-image">${update.image}</div>
+                    <div class="slide-content">
+                        <div class="slide-title">${escapeHtml(update.title)}</div>
+                        <div class="slide-desc">${escapeHtml(update.desc)}</div>
+                        <div class="slide-date">📅 ${update.date}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function scrollToSlide(index) {
+            const container = document.getElementById('sliderContainer');
+            const slideWidth = document.querySelector('.slide-item')?.offsetWidth || 280;
+            const gap = 20;
+            currentSlideIndexGlobal = Math.min(Math.max(index, 0), updates.length - 1);
+            container.scrollTo({ left: currentSlideIndexGlobal * (slideWidth + gap), behavior: 'smooth' });
+        }
+        
+        function nextSlide() { scrollToSlide(currentSlideIndexGlobal + 1); }
+        function prevSlide() { scrollToSlide(currentSlideIndexGlobal - 1); }
+        
+        function startAutoSlide() {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(() => {
+                if (currentSlideIndexGlobal < updates.length - 1) scrollToSlide(currentSlideIndexGlobal + 1);
+                else scrollToSlide(0);
+            }, 5000);
+        }
+        
+        function restartAutoSlide() { if (slideInterval) { clearInterval(slideInterval); startAutoSlide(); } }
+        
+        function initSlider() {
+            renderSlider();
+            document.getElementById('sliderPrev')?.addEventListener('click', () => { prevSlide(); restartAutoSlide(); });
+            document.getElementById('sliderNext')?.addEventListener('click', () => { nextSlide(); restartAutoSlide(); });
+            const container = document.getElementById('sliderContainer');
+            if (container) {
+                container.addEventListener('scroll', () => {
+                    const slideWidth = document.querySelector('.slide-item')?.offsetWidth || 280;
+                    const gap = 20;
+                    const newIndex = Math.round(container.scrollLeft / (slideWidth + gap));
+                    if (newIndex !== currentSlideIndexGlobal) { currentSlideIndexGlobal = newIndex; restartAutoSlide(); }
+                });
+                container.addEventListener('touchend', () => restartAutoSlide());
+            }
+            startAutoSlide();
+            if (!newUpdateSeen) {
+                const badge = document.getElementById('newUpdateBadge');
+                if (badge) badge.style.display = 'inline-block';
+                setTimeout(() => { if (badge) badge.style.display = 'none'; newUpdateSeen = true; }, 60000);
+            }
+        }
+        
+        function showUpdateEditor() {
+            if (currentUserRole !== 'admin') return;
+            const body = document.getElementById('updateEditBody');
+            body.innerHTML = `
+                <div id="updatesListAdmin">
+                    ${updates.map((u, i) => `
+                        <div class="admin-file-item" style="margin-bottom:15px;">
+                            <div><strong>${escapeHtml(u.title)}</strong><br><small>${escapeHtml(u.desc)} | ${u.date}</small></div>
+                            <div><button class="admin-delete-btn" onclick="removeUpdate(${i})">Hapus</button></div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="new-message-section">
+                    <div class="new-message-title">➕ Tambah Update Baru</div>
+                    <div class="new-message-form">
+                        <input type="text" id="newUpdateTitle" placeholder="Judul Update" class="new-message-input">
+                        <input type="text" id="newUpdateDesc" placeholder="Deskripsi" class="new-message-input">
+                        <input type="text" id="newUpdateIcon" placeholder="Icon (emoji)" class="new-message-input" value="🚀">
+                        <input type="text" id="newUpdateDate" placeholder="Tanggal (Coming Soon/Next Update)" class="new-message-input">
+                        <button id="addUpdateBtn" class="inbox-reply-btn">Tambah Update</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('addUpdateBtn').onclick = () => {
+                const title = document.getElementById('newUpdateTitle').value.trim();
+                const desc = document.getElementById('newUpdateDesc').value.trim();
+                const icon = document.getElementById('newUpdateIcon').value.trim() || '🚀';
+                const date = document.getElementById('newUpdateDate').value.trim() || 'Coming Soon';
+                if (!title || !desc) { customAlert('Judul dan deskripsi harus diisi!', '⚠️'); return; }
+                updates.push({ id: Date.now(), title, desc, date, image: icon });
+                renderSlider();
+                startAutoSlide();
+                showUpdateEditor();
+                showNotification('✅ Update baru ditambahkan!', '🚀');
+            };
+            document.getElementById('updateEditModal').style.display = 'block';
+        }
+        
+        window.removeUpdate = function(index) {
+            updates.splice(index, 1);
+            renderSlider();
+            startAutoSlide();
+            showUpdateEditor();
+            showNotification('🗑️ Update dihapus!', '🗑️');
+        };
+
+        // ==================== INBOX SYSTEM ====================
+        let inboxMessages = [];
+        let reports = [];
+
+        function loadInbox() {
+            const stored = localStorage.getItem('lifx_inbox');
+            if (stored) inboxMessages = JSON.parse(stored);
+            else inboxMessages = [];
+            saveInbox();
+            updateInboxBadge();
+        }
+        function saveInbox() { localStorage.setItem('lifx_inbox', JSON.stringify(inboxMessages)); }
+        function updateInboxBadge() {
+            const unreadCount = inboxMessages.filter(m => !m.read).length;
+            const badge = document.getElementById('inboxBadge');
+            if (badge) {
+                if (unreadCount > 0) { badge.style.display = 'flex'; badge.innerText = unreadCount > 9 ? '9+' : unreadCount; }
+                else { badge.style.display = 'none'; }
+            }
+        }
+
+        async function addInboxMessage(title, message, sender = 'admin', senderAvatar = '👑', isAdmin = false) {
+            showLoading('Mengirim pesan...');
+            await new Promise(r => setTimeout(r, 500));
+            const newMsg = { id: Date.now(), title, message, sender, senderAvatar, date: new Date().toISOString(), read: false, replies: [] };
+            inboxMessages.unshift(newMsg);
+            saveInbox();
+            updateInboxBadge();
+            hideLoading();
+            await showSuccessCheck('Pesan terkirim!');
+            showNotification(`📬 Pesan baru dari ${sender}`, '📬');
+        }
+
+        async function sendNewMessage() {
+            const title = document.getElementById('newMessageTitle').value.trim();
+            const message = document.getElementById('newMessageText').value.trim();
+            if (!title || !message) { customAlert('Judul dan pesan harus diisi!', '⚠️'); return; }
+            await addInboxMessage(title, message, currentUsername, getAvatar(), false);
+            document.getElementById('newMessageTitle').value = '';
+            document.getElementById('newMessageText').value = '';
+            renderInboxModal();
+        }
+
+        function markAsRead(id) {
+            const msg = inboxMessages.find(m => m.id === id);
+            if (msg) { msg.read = true; saveInbox(); updateInboxBadge(); renderInboxModal(); }
+        }
+
+        async function addReplyToMessage(msgId, replyText, replySender, replyAvatar) {
+            showLoading('Mengirim balasan...');
+            await new Promise(r => setTimeout(r, 500));
+            const msg = inboxMessages.find(m => m.id === msgId);
+            if (msg) {
+                msg.replies.push({ id: Date.now(), text: replyText, sender: replySender, avatar: replyAvatar, date: new Date().toISOString() });
+                saveInbox();
+                renderInboxModal();
+                hideLoading();
+                await showSuccessCheck('Balasan terkirim!');
+                showNotification(`💬 Balasan ke ${msg.sender} terkirim`, '💬');
+            } else { hideLoading(); }
+        }
+
+        async function deleteMessage(id) {
+            inboxMessages = inboxMessages.filter(m => m.id !== id);
+            saveInbox();
+            updateInboxBadge();
+            renderInboxModal();
+            showNotification('🗑️ Pesan dihapus!', '🗑️');
+        }
+
+        function renderInboxModal() {
+            const container = document.getElementById('inboxModalBody');
+            if (!container) return;
+            if (inboxMessages.length === 0) {
+                container.innerHTML = '<div class="empty-state">📭 Belum ada pesan</div><div class="new-message-section"><div class="new-message-title">📝 Kirim Pesan ke Admin</div><div class="new-message-form"><input type="text" id="newMessageTitle" placeholder="Judul Pesan" class="new-message-input"><textarea id="newMessageText" placeholder="Isi pesan..." class="new-message-textarea" rows="3"></textarea><button class="send-message-btn" id="sendNewMsgBtn">Kirim Pesan</button></div></div>';
+                document.getElementById('sendNewMsgBtn')?.addEventListener('click', sendNewMessage);
+                return;
+            }
+            container.innerHTML = `
+                <div class="inbox-list">
+                    ${inboxMessages.map(msg => `
+                        <div class="inbox-item ${!msg.read ? 'unread' : ''}" data-id="${msg.id}">
+                            <div class="inbox-header">
+                                <div class="inbox-title">${escapeHtml(msg.title)}</div>
+                                <div class="inbox-sender">${msg.senderAvatar} ${escapeHtml(msg.sender)}</div>
+                                <div class="inbox-date">${new Date(msg.date).toLocaleString()}</div>
+                            </div>
+                            <div class="inbox-message">${msg.message.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#3498db">🔗 $1</a>')}</div>
+                            ${msg.replies.length ? `<div class="reply-section"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px;">💬 Balasan:</div>${msg.replies.map(r => `<div class="reply-item"><div class="reply-avatar">${r.avatar}</div><div class="reply-content"><div class="reply-name">${escapeHtml(r.sender)}</div><div class="reply-text">${r.text}</div></div></div>`).join('')}</div>` : ''}
+                            ${currentUserRole === 'admin' ? `
+                                <div class="inbox-reply-form"><input type="text" class="inbox-reply-input" id="replyInput-${msg.id}" placeholder="Balas pesan..."><button class="inbox-reply-btn" onclick="window.sendReply(${msg.id})">Kirim Balasan</button></div>
+                                <div style="margin-top:8px;"><button class="delete-inbox-btn" onclick="window.deleteMessage(${msg.id})">Hapus Pesan</button></div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="new-message-section">
+                    <div class="new-message-title">📝 Kirim Pesan Baru ke Admin</div>
+                    <div class="new-message-form">
+                        <input type="text" id="newMessageTitle" placeholder="Judul Pesan" class="new-message-input">
+                        <textarea id="newMessageText" placeholder="Isi pesan..." class="new-message-textarea" rows="3"></textarea>
+                        <button class="send-message-btn" id="sendNewMsgBtn">Kirim Pesan</button>
+                    </div>
+                </div>
+            `;
+            inboxMessages.forEach(msg => { if (!msg.read) markAsRead(msg.id); });
+            document.getElementById('sendNewMsgBtn')?.addEventListener('click', sendNewMessage);
+        }
+
+        window.sendReply = async function(msgId) {
+            const input = document.getElementById(`replyInput-${msgId}`);
+            if (input && input.value.trim()) {
+                await addReplyToMessage(msgId, input.value.trim(), currentUsername, getAvatar());
+                input.value = '';
+            }
+        };
+        window.deleteMessage = deleteMessage;
+        function showInbox() { renderInboxModal(); document.getElementById('inboxModal').style.display = 'block'; }
+
+        // ==================== REPORT SYSTEM ====================
+        function loadReports() {
+            const stored = localStorage.getItem('lifx_reports');
+            reports = stored ? JSON.parse(stored) : [];
+        }
+        function saveReports() { localStorage.setItem('lifx_reports', JSON.stringify(reports)); }
+        
+        async function addReport(text) {
+            showLoading('Mengirim laporan...');
+            await new Promise(r => setTimeout(r, 500));
+            reports.unshift({ id: Date.now(), text, sender: currentUsername, senderAvatar: getAvatar(), date: new Date().toISOString(), status: 'pending', reply: null });
+            saveReports();
+            addInboxMessage('📢 Laporan Baru', `Dari: ${currentUsername}\nIsi: ${text}`, 'System', '🤖', true);
+            hideLoading();
+            await showSuccessCheck('Laporan terkirim!');
+            showNotification('📢 Laporan terkirim ke admin!', '📢');
+        }
+
+        async function replyToReport(reportId, replyText) {
+            showLoading('Mengirim balasan...');
+            await new Promise(r => setTimeout(r, 500));
+            const report = reports.find(r => r.id === reportId);
+            if (report) { report.reply = replyText; report.status = 'resolved'; saveReports(); addInboxMessage('✅ Laporan Direspon', `Laporan Anda telah direspon: ${replyText}`, 'Admin', '👑', true); renderReportModal(); }
+            hideLoading();
+            await showSuccessCheck('Balasan terkirim!');
+        }
+
+        function renderReportModal() {
+            const container = document.getElementById('reportModalBody');
+            if (!container) return;
+            if (currentUserRole === 'admin') {
+                container.innerHTML = `<div class="reports-list">${reports.map(r => `
+                    <div class="report-item">
+                        <div class="report-header"><span>${r.senderAvatar} ${escapeHtml(r.sender)}</span><span class="report-status ${r.status}">${r.status === 'pending' ? 'Menunggu' : 'Selesai'}</span></div>
+                        <div class="report-text">${escapeHtml(r.text)}</div>
+                        ${r.status === 'pending' ? `<div class="inbox-reply-form"><input type="text" id="reportReplyInput-${r.id}" placeholder="Balas laporan..."><button onclick="window.submitReportReply(${r.id})">Kirim Balasan</button></div>` : `<div class="report-reply">💬 Balasan Admin: ${escapeHtml(r.reply)}</div>`}
+                    </div>
+                `).join('')}</div>`;
+            } else {
+                container.innerHTML = `
+                    <div class="report-form"><textarea id="reportText" rows="4" placeholder="Tulis laporan atau saran Anda..."></textarea><button class="report-submit-btn" id="submitReportBtn">📢 Kirim Laporan</button></div>
+                    <div class="reports-list" style="margin-top:20px;"><h4>Laporan Anda</h4>${reports.filter(r => r.sender === currentUsername).map(r => `
+                        <div class="report-item"><div class="report-text">${escapeHtml(r.text)}</div><div class="report-status ${r.status}">${r.status === 'pending' ? '⏳ Menunggu respon' : '✅ Selesai'}</div>${r.reply ? `<div class="report-reply">💬 Balasan: ${escapeHtml(r.reply)}</div>` : ''}</div>
+                    `).join('')}</div>
+                `;
+                document.getElementById('submitReportBtn')?.addEventListener('click', async () => {
+                    const text = document.getElementById('reportText').value.trim();
+                    if (text) { await addReport(text); document.getElementById('reportText').value = ''; renderReportModal(); }
+                    else customAlert('Tulis laporan dulu!', '⚠️');
+                });
+            }
+        }
+
+        window.submitReportReply = async function(reportId) {
+            const input = document.getElementById(`reportReplyInput-${reportId}`);
+            if (input && input.value.trim()) { await replyToReport(reportId, input.value.trim()); input.value = ''; renderReportModal(); }
+        };
+        function showReport() { renderReportModal(); document.getElementById('reportModal').style.display = 'block'; }
+
+        // ==================== PROFILE EDIT ====================
+        function showProfileEdit() {
+            const currentAvatar = getAvatar();
+            const body = document.getElementById('profileEditBody');
+            body.innerHTML = `<div class="avatar-selector">${['👤','👑','👻','🐱','😎','🌟','🔥','💜'].map(a => `<div class="avatar-option ${currentAvatar === a ? 'selected' : ''}" data-avatar="${a}">${a}</div>`).join('')}</div><button class="save-avatar-btn" id="saveAvatarBtn">Simpan Perubahan</button>`;
+            document.querySelectorAll('.avatar-option').forEach(opt => opt.onclick = function() { document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected')); this.classList.add('selected'); });
+            document.getElementById('saveAvatarBtn').onclick = () => {
+                const selected = document.querySelector('.avatar-option.selected');
+                if (selected) { localStorage.setItem('lifx_avatar', selected.dataset.avatar); document.getElementById('userAvatar').innerHTML = selected.dataset.avatar; showNotification('✅ Avatar berhasil diubah!', '✅'); document.getElementById('profileEditModal').style.display = 'none'; }
+            };
+            document.getElementById('profileEditModal').style.display = 'block';
+        }
+
+        // ==================== THEME & EFFECTS ====================
+        function initTheme() {
+            const toggle = document.getElementById('themeToggleCheckbox');
+            const saved = localStorage.getItem('lifx_theme');
+            if (saved === 'dark') { document.body.className = 'theme-dark'; toggle.checked = true; }
+            else { document.body.className = 'theme-light'; toggle.checked = false; }
+            toggle.onchange = () => {
+                document.body.className = toggle.checked ? 'theme-dark' : 'theme-light';
+                localStorage.setItem('lifx_theme', toggle.checked ? 'dark' : 'light');
+            };
+        }
+        
+        function initEffects() {
+            const toggle = document.getElementById('effectsToggle');
+            const saved = localStorage.getItem('lifx_effects');
+            if (saved === 'off') { document.body.classList.add('effects-off'); toggle.checked = false; }
+            else toggle.checked = true;
+            toggle.onchange = () => {
+                if (toggle.checked) { document.body.classList.remove('effects-off'); localStorage.setItem('lifx_effects', 'on'); }
+                else { document.body.classList.add('effects-off'); localStorage.setItem('lifx_effects', 'off'); }
+            };
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        let sidebarOpen = false;
+        function initEvents() {
+            const hamburger = document.getElementById('hamburgerBtn');
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('mainContent');
+            hamburger.onclick = () => { sidebarOpen = !sidebarOpen; hamburger.classList.toggle('active'); sidebar.classList.toggle('active'); main.classList.toggle('shifted'); };
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.id !== 'logoutBtn' && item.id !== 'soundControlBtn') {
+                    item.onclick = () => {
+                        const page = item.dataset.page;
+                        if (page) {
+                            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                            document.getElementById(`${page}Page`).classList.add('active');
+                            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                            item.classList.add('active');
+                            if (page === 'files') renderFiles();
+                            if (page === 'websites') renderWebsites();
+                            if (page === 'admin') renderAdminPanel();
+                            if (page === 'rating') { updateRatingDisplay(); renderComments(); }
+                            if (page === 'akun') renderAkunPage();
+                            if (window.innerWidth < 768 && sidebarOpen) hamburger.click();
+                        }
+                    };
+                }
+            });
+            
+            document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('lifx_user'); localStorage.removeItem('lifx_role'); window.location.href = 'index.html'; };
+            document.getElementById('openZipModalBtn').onclick = showZipModal;
+            document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsModal').style.display = 'block';
+            document.getElementById('submitCommentBtn').onclick = addComment;
+            document.getElementById('inboxBtn').onclick = showInbox;
+            document.getElementById('reportBtn').onclick = showReport;
+            document.getElementById('profileBtn').onclick = () => { if (currentUserRole === 'guest') customAlert('Guest tidak punya profil! Login dulu.', '👻'); else showProfileEdit(); };
+            document.getElementById('editUpdateBtn').onclick = showUpdateEditor;
+            
+            const ownerCredit = document.getElementById('ownerCredit');
+            if (ownerCredit) {
+                ownerCredit.addEventListener('click', () => {
+                    customAlert('👨‍💻 Owner: alifdiaz\n📧 Hubungi: alifdiaz@example.com', '👑');
+                });
+            }
+            
+            document.querySelectorAll('.close, .close-info, .close-settings, .close-inbox, .close-report, .close-profile, .close-update, .close-running').forEach(btn => btn.onclick = () => {
+                document.getElementById('zipModal').style.display = 'none';
+                document.getElementById('infoModal').style.display = 'none';
+                document.getElementById('settingsModal').style.display = 'none';
+                document.getElementById('inboxModal').style.display = 'none';
+                document.getElementById('reportModal').style.display = 'none';
+                document.getElementById('profileEditModal').style.display = 'none';
+                document.getElementById('updateEditModal').style.display = 'none';
+                document.getElementById('runningTextModal').style.display = 'none';
+            });
+            window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+        }
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUser();
+            loadAccounts();
+            loadData();
+            loadRatings();
+            loadInbox();
+            loadReports();
+            initEvents();
+            initTheme();
+            initEffects();
+            initRatingStars();
+            initSlider();
+            renderFiles();
+            renderWebsites();
+            renderAdminPanel();
+            renderAkunPage();
+            setTimeout(checkScroll, 500);
+            if (currentUserRole !== 'admin' && inboxMessages.length === 0) {
+                setTimeout(() => addInboxMessage('🎉 Selamat Datang!', 'Terima kasih telah bergabung dengan LIFX Library. Nikmati berbagai fitur yang tersedia!', 'Admin LIFX', '👑', true), 2000);
+            }
+        });
+        
+        window.deleteComment = deleteComment;
+        window.deleteFile = deleteFile;
+        window.deleteAkun = deleteAkun;
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>
