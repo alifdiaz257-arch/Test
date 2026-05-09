@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="userGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#28a745;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#20c997;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Badge background -->
+  <circle cx="50" cy="50" r="48" fill="url(#userGrad)" stroke="#fff" stroke-width="2"/>
+  <!-- User icon -->
+  <circle cx="50" cy="38" r="14" fill="#fff" opacity="0.9"/>
+  <circle cx="44" cy="35" r="2" fill="#333"/>
+  <circle cx="56" cy="35" r="2" fill="#333"/>
+  <path d="M45 42 Q50 46 55 42" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Body -->
+  <path d="M32 65 Q50 58 68 65" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <rect x="38" y="67" width="24" height="18" rx="5" fill="#fff" opacity="0.8"/>
+  <!-- User badge -->
+  <text x="50" y="88" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold" font-family="Arial">USER</text>
+</svg>
